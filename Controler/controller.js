@@ -1,7 +1,10 @@
-const { User, Recipe } = require("../model/UserSchema")
+const { User, Recipe, favorite } = require("../model/UserSchema")
 const bcrypt = require("bcrypt")
 const jwt = require("jsonwebtoken")
 const senduserEmail = require("../mailsender")
+const { response, request } = require("express")
+const mongoose = require("mongoose")
+const { default: rateLimit } = require("express-rate-limit")
 
 
 
@@ -44,6 +47,12 @@ const register =  async (request,response) => {
         })
     }
 }
+
+const loginLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 5, // Limit each IP to 5 login requests per `windowMs`
+    message: "Too many login attempts from this IP, please try again after 15 minutes."
+});
 
 
 const login =async (request,response)=>{
@@ -90,9 +99,98 @@ const recipe = async (request,response)=>{
     }
     
 }
+//update recipes
+
+const update_recipe = async(request,response)=>{
+    try {
+        const {instruction,ingredients} = request.body
+        const {id}= request.params
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return response.status(400).json({ message: "Recipe not found" });
+        }
+        const update_recipe = await Recipe.findByIdAndUpdate(id,{instruction,ingredients}, { new: true} )
+        
+        return response.status(200).json({message:"Recipe updated successfully",update_recipe})
+    } catch (error) {
+        return response.status(500).json({message:error.message})
+        
+    }
+   
+}
+//delete recipe
+
+const delete_recipe = async(request,response)=>{
+    try {
+        const {id}= request.params
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return response.status(400).json({ message: "Recipe not found" });
+        }
+        const delete_recipe = await Recipe.findByIdAndDelete(id,{new:true})
+        return response.status(200).json({message:"Successful deleted"})
+    } catch (error) {
+        return response.status(500).json({message:error.message})
+    }
+}
+
+// search for based on categories and ingedrigent
+const search_recipe = async(request,response)=>{
+
+}
+
+//Rating
+
+const Favorite = async(request,response)=>{
+    const{recipeId}= request.body
+    const userid =  request.user._id
+    const {rating} = request.body
+
+    const alreadyexistingfavorite = await favorite.findOne({user:userid,recipe:recipeId,rating:rating})
+    if(alreadyexistingfavorite){
+        return response.status(404).json({message:"Favorite already exist"})
+    }
+    const favoriterecipe = new favorite({ user: userid, recipe: recipeId, rating })
+    await favoriterecipe.save()
+
+    return response.status(200).json({message:"New Favorite successfully added"})
+
+}
+
+const all_user = async(request,response)=>{
+    try {
+        const all_user = await User.find()
+        return response.status(200).json({all_user})
+    } catch (error) {
+        return response.status(500).json({message:error.message})
+    }
+}
+
+const all_recipe = async(request,response)=>{
+    try {
+        const all_recipe = await Recipe.find()
+        return response.status(200).json({all_recipe})
+    } catch (error) {
+        return response.status(500).json({message:error.message})
+    }
+}
+
+const all_favorite = async(request,response)=>{
+    try {
+        const all_favorite1 = await favorite.find()
+        return response.status(200).json({all_favorite1})
+    } catch (error) {
+        return response.status(500).json({message:error.message})
+    }
+}
 
 module.exports = {
     register,
     login,
-    recipe
+    recipe,
+    all_user,
+    all_recipe,
+    update_recipe,
+    delete_recipe,
+    Favorite,
+    all_favorite,
+    loginLimiter
 }

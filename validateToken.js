@@ -6,6 +6,9 @@ const jwt = require("jsonwebtoken")
 const validtoken = async (request,response,next)=>{
     try {
         const token= request.header("Authorization")
+        if(!token){
+            return response.status(404).json({message:"Access denied"})
+        }
         //console.log(token)
         const tkk =token.split(" ")
         const token1 =tkk[1]

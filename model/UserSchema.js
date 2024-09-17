@@ -25,9 +25,24 @@ const recipe = mongoose.Schema({
 
     title:{type:String, require:true},
     authorid:{type: mongoose.Schema.Types.ObjectId, ref: User, require:true },
-    ingredients : {type:String, require:true},
+    ingredients : {type:[String], require:true},
     instruction : {type:String},
-    categories : {type:String , require:true}
+    categories : {type:[String] , enum:['Breakfast', 'Lunch', 'Dinner', 'Snack', 'Dessert', 'Appetizer', 'Beverage',
+      
+        // Cuisines
+        'Italian', 'Chinese', 'Mexican', 'Indian', 'Mediterranean', 'Thai', 'American', 'French', 'Japanese',
+        
+        // Dietary Preferences
+        'Vegan', 'Vegetarian', 'Gluten-Free', 'Dairy-Free', 'Keto', 'Paleo', 'Low-Carb', 'High-Protein',
+        
+        // Ingredient Types
+        'Chicken', 'Beef', 'Pork', 'Seafood', 'Vegetables', 'Fruits', 'Grains', 'Legumes', 'Dairy',
+        
+        // Cooking Methods
+        'Grilled', 'Baked', 'Fried', 'Steamed', 'Boiled', 'Roasted', 'Slow Cooked',
+        
+        // Nutrients
+        'Calories', 'Protein', 'Fat and Oil', 'Carbohydrates', 'Fiber', 'Sugar', 'Vitamins', 'Minerals'] ,require:true}
 
 },{
     timestamps:true
@@ -35,10 +50,19 @@ const recipe = mongoose.Schema({
 
 const Recipe = mongoose.model("recipe",recipe)
 
+//FavouriteSchema
+const favoriteSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    recipe: { type: mongoose.Schema.Types.ObjectId, ref: 'Recipe', required: true },
+    rating:{type:Number,require:true,min:1,max:5}
+  });
+
+  const favorite = mongoose.model("favoriteSchema",favoriteSchema)
 
 module.exports = {
     User,
-    Recipe
+    Recipe,
+    favorite
 }
 
 
