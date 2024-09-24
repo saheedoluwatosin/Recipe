@@ -5,6 +5,7 @@ const senduserEmail = require("../mailsender")
 const { response, request } = require("express")
 const mongoose = require("mongoose")
 const { default: rateLimit } = require("express-rate-limit")
+const pagination = require("../Utilies")
 
 
 
@@ -132,9 +133,20 @@ const delete_recipe = async(request,response)=>{
     }
 }
 
-// search for based on categories and ingedrigent
+// search for recipes and pagination 
 const search_recipe = async(request,response)=>{
-
+    try {
+        const {page,limit,skip} = pagination(request)
+        const {category} = request.query
+        const overallrecipe = await Recipe.find().limit(limit).skip(skip).sort("-createdAt")
+        return response.status(200).json({
+            message:"Successful",
+            overallrecipe
+        })
+    } catch (error) {
+        return response.status(500).json({error:error.message})
+    }
+    
 }
 
 //Rating
@@ -192,5 +204,6 @@ module.exports = {
     delete_recipe,
     Favorite,
     all_favorite,
-    loginLimiter
+    loginLimiter,
+    search_recipe
 }
